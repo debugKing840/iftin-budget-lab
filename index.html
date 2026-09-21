@@ -15,8 +15,10 @@
 .card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:18px}.metric .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.metric .value{font-size:26px;font-weight:800;margin-top:6px}.metric small{color:var(--muted)}
 .grid{display:grid;grid-template-columns:1.25fr .75fr;gap:16px}
 h2{font-size:18px;margin:0 0 14px}.section{margin-top:16px}
-.controls{display:grid;gap:12px}.control{border:1px solid var(--line);border-radius:13px;padding:13px 14px;background:#fff}.controltop{display:flex;justify-content:space-between;gap:12px}.control label{font-weight:700}.control .hint{font-size:12px;color:var(--muted);margin-top:3px}.control input[type=range]{width:100%;margin:12px 0 2px;accent-color:var(--accent)}.val{font-weight:800;color:var(--accent)}
-select{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;font-weight:650}
+.controls{display:grid;gap:12px}.control{border:1px solid var(--line);border-radius:13px;padding:13px 14px;background:#fff}.controltop{display:flex;justify-content:space-between;gap:12px;align-items:center}.control label{font-weight:700}.control .hint{font-size:12px;color:var(--muted);margin-top:3px}.control input[type=range]{width:100%;margin:12px 0 2px;accent-color:var(--accent)}
+.num-input-wrap{display:flex;align-items:center;gap:4px;font-weight:800;color:var(--accent)}
+.num-input-wrap input[type=number]{width:90px;padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;font-weight:800;font-size:14px;color:var(--accent);text-align:right;background:var(--soft)}
+.num-input-wrap input[type=number]:focus{outline:none;border-color:var(--accent);background:#fff}
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}td.num{text-align:right;white-space:nowrap}.p1{font-weight:800}.pill{display:inline-block;border-radius:999px;padding:4px 8px;background:var(--soft);font-size:11px;font-weight:800}
 .bar{height:9px;background:#e8edf0;border-radius:99px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px}
 .note{font-size:12px;color:var(--muted);line-height:1.45}.total{font-size:21px;font-weight:850}.ok{color:#24724c}.over{color:#a52f2f}
@@ -30,7 +32,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px 8px;
 <section class="hero">
  <div><div class="kicker">Swahilipot Hub Foundation · IFTIN Global</div>
  <h1>Budget Lab</h1>
- <p>Interactive version of the SPH IFTIN Program Budget. Change the assumptions below and watch the implementation budget, EUR value, contingency and priority mix recalculate.</p></div>
+ <p>Interactive version of the SPH IFTIN Program Budget. Change the assumptions below (using sliders or typing numbers) and watch the budget recalculate live.</p></div>
  <div class="badge">Budget ceiling · KSh 5,000,000</div>
 </section>
 
@@ -46,13 +48,13 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px 8px;
  <div class="card">
   <h2>Assumptions</h2>
   <div class="controls">
-   <div class="control"><div class="controltop"><div><label>Participants per group</label><div class="hint">Used for refreshments</div></div><span class="val" id="vParticipants">25</span></div><input id="participants" type="range" min="10" max="40" step="1" value="25"></div>
-   <div class="control"><div class="controltop"><div><label>Number of sessions</label><div class="hint">Current workbook basis: 8 groups × 12 rounds</div></div><span class="val" id="vSessions">96</span></div><input id="sessions" type="range" min="16" max="120" step="8" value="96"></div>
-   <div class="control"><div class="controltop"><div><label>Refreshments / participant / session</label></div><span class="val">KSh <span id="vRefresh">300</span></span></div><input id="refresh" type="range" min="150" max="500" step="50" value="300"></div>
-   <div class="control"><div class="controltop"><div><label>Venue / session</label></div><span class="val">KSh <span id="vVenue">10,000</span></span></div><input id="venue" type="range" min="0" max="15000" step="500" value="10000"></div>
-   <div class="control"><div class="controltop"><div><label>Facilitation / mentor / session</label><div class="hint">Workbook note says KSh 2,000–3,000; default uses high end</div></div><span class="val">KSh <span id="vFac">3,000</span></span></div><input id="fac" type="range" min="2000" max="3000" step="500" value="3000"></div>
-   <div class="control"><div class="controltop"><div><label>Printing / session</label></div><span class="val">KSh <span id="vPrint">1,000</span></span></div><input id="print" type="range" min="0" max="2000" step="250" value="1000"></div>
-   <div class="control"><div class="controltop"><div><label>Training of Trainers package / person / day</label></div><span class="val">KSh <span id="vTot">13,500</span></span></div><input id="tot" type="range" min="8000" max="18000" step="500" value="13500"></div>
+   <div class="control"><div class="controltop"><div><label>Participants per group</label><div class="hint">Used for refreshments</div></div><div class="num-input-wrap"><input id="participants_num" type="number" min="1" max="100" value="25"></div></div><input id="participants" type="range" min="10" max="40" step="1" value="25"></div>
+   <div class="control"><div class="controltop"><div><label>Number of sessions</label><div class="hint">Current workbook basis: 8 groups × 12 rounds</div></div><div class="num-input-wrap"><input id="sessions_num" type="number" min="1" max="300" value="96"></div></div><input id="sessions" type="range" min="16" max="120" step="8" value="96"></div>
+   <div class="control"><div class="controltop"><div><label>Refreshments / participant / session</label></div><div class="num-input-wrap">KSh <input id="refresh_num" type="number" min="0" step="50" value="300"></div></div><input id="refresh" type="range" min="150" max="500" step="50" value="300"></div>
+   <div class="control"><div class="controltop"><div><label>Venue / session</label></div><div class="num-input-wrap">KSh <input id="venue_num" type="number" min="0" step="500" value="10000"></div></div><input id="venue" type="range" min="0" max="15000" step="500" value="10000"></div>
+   <div class="control"><div class="controltop"><div><label>Facilitation / mentor / session</label><div class="hint">Workbook note: KSh 2,000–3,000</div></div><div class="num-input-wrap">KSh <input id="fac_num" type="number" min="0" step="500" value="3000"></div></div><input id="fac" type="range" min="2000" max="3000" step="500" value="3000"></div>
+   <div class="control"><div class="controltop"><div><label>Printing / session</label></div><div class="num-input-wrap">KSh <input id="print_num" type="number" min="0" step="250" value="1000"></div></div><input id="print" type="range" min="0" max="2000" step="250" value="1000"></div>
+   <div class="control"><div class="controltop"><div><label>Training of Trainers package / person / day</label></div><div class="num-input-wrap">KSh <input id="tot_num" type="number" min="0" step="500" value="13500"></div></div><input id="tot" type="range" min="8000" max="18000" step="500" value="13500"></div>
   </div>
  </div>
 
@@ -75,7 +77,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px 8px;
  </div>
  <div class="card section">
   <h2>Source notes</h2>
-  <p class="note">Data and descriptions are taken from the uploaded <b>SPH IFTIN Program Budget.xlsx</b>. The linked IFTIN page uses the same “Budget lab” concept: assumptions are changed and the budget recalculates live.</p>
+  <p class="note">Data and descriptions are taken from the uploaded <b>SPH IFTIN Program Budget.xlsx</b>. Assumptions can be typed or adjusted via sliders.</p>
   <p class="note">Exchange rate: KSh 147.70 = EUR 1, as stated in the workbook.</p>
  </div>
 </div>
@@ -87,9 +89,19 @@ const ceiling=5000000, fx=147.7;
 const el=id=>document.getElementById(id), money=n=>new Intl.NumberFormat('en-KE',{maximumFractionDigits:0}).format(Math.round(n)), eur=n=>'€'+new Intl.NumberFormat('en-DE',{minimumFractionDigits:0,maximumFractionDigits:0}).format(Math.round(n/fx));
 const inputs=['participants','sessions','refresh','venue','fac','print','tot'];
 const base={callAgents:30000,airtime:20000,meals:62500,adminAirtime:36000,adminTransport:450000,photo:300000,social:134500,press:100000,logistics:300000};
-function calc(){
- const p=+el('participants').value,s=+el('sessions').value,r=+el('refresh').value,v=+el('venue').value,f=+el('fac').value,pr=+el('print').value,t=+el('tot').value;
- el('vParticipants').textContent=p;el('vSessions').textContent=s;el('vRefresh').textContent=money(r);el('vVenue').textContent=money(v);el('vFac').textContent=money(f);el('vPrint').textContent=money(pr);el('vTot').textContent=money(t);
+
+function calc(sourceId){
+ inputs.forEach(id=>{
+  const range=el(id), num=el(id+'_num');
+  if(sourceId===id+'_num'){
+   range.value=num.value;
+  }else if(sourceId===id || !sourceId){
+   num.value=range.value;
+  }
+ });
+
+ const p=+el('participants_num').value,s=+el('sessions_num').value,r=+el('refresh_num').value,v=+el('venue_num').value,f=+el('fac_num').value,pr=+el('print_num').value,t=+el('tot_num').value;
+
  const lines=[
  ['Refreshments','P1','Youth refreshments',p*s*r,'P1'],
  ['Venue hire','P1','Training venues',s*v,'P1'],
@@ -114,6 +126,11 @@ function calc(){
  const groups={P1:0,P2:0,P3:0,P4:0,TBD:0,P5:cont};lines.forEach(x=>groups[x[4]]+=x[3]);
  el('priorities').innerHTML=Object.entries(groups).map(([k,v])=>`<div style="margin:12px 0"><div class="controltop"><b>${k}</b><span>${money(v)} · ${(v/total*100).toFixed(1)}%</span></div><div class="bar"><i style="width:${Math.min(100,v/total*100)}%"></i></div></div>`).join('');
 }
-inputs.forEach(i=>el(i).addEventListener('input',calc));calc();
+
+inputs.forEach(i=>{
+ el(i).addEventListener('input',()=>calc(i));
+ el(i+'_num').addEventListener('input',()=>calc(i+'_num'));
+});
+calc();
 </script>
 </body></html>
