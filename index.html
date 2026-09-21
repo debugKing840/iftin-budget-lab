@@ -1,23 +1,360 @@
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Swahilipot IFTIN Budget Lab (Live Sync)</title>
+<style>
+:root{--ink:#17212b;--muted:#6b7785;--line:#dfe5ea;--soft:#f5f7f9;--accent:#1d6f8a;--warn:#a85d00;--danger:#a52f2f;--white:#fff}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink);background:#eef2f4}
+.wrap{max-width:1280px;margin:auto;padding:28px 22px 50px}
+.hero{background:var(--ink);color:#fff;border-radius:22px;padding:28px 32px;display:flex;justify-content:space-between;gap:20px;align-items:center;flex-wrap:wrap}
+.kicker{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.7}.hero h1{font-size:32px;line-height:1.05;margin:6px 0 0}
+.hero-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.config-box{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:8px}
+.config-box label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#cdd7df;font-weight:700}
+.config-box input, .config-box select{background:#fff;border:none;border-radius:8px;padding:5px 8px;font-weight:800;font-size:14px;color:var(--ink)}
+.config-box input[type=number]{width:110px;text-align:right}
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyByWtJkrEYRXH4bzS7hmPsV3biXTQDpBkU",
-    authDomain: "iftin-ca5b7.firebaseapp.com",
-    projectId: "iftin-ca5b7",
-    storageBucket: "iftin-ca5b7.firebasestorage.app",
-    messagingSenderId: "1029768321759",
-    appId: "1:1029768321759:web:6dd5323930b871a1a2276a",
-    measurementId: "G-B90K8HBY0V"
-  };
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:16px 0;flex-wrap:wrap}
+.btn-group{display:flex;gap:8px;align-items:center}
+.status-pill{font-size:12px;padding:4px 10px;border-radius:20px;background:#e2f0d9;color:#24724c;font-weight:700;display:inline-flex;align-items:center;gap:6px}
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:18px}.metric .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.metric .value{font-size:24px;font-weight:800;margin-top:6px}.metric small{color:var(--muted)}
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+h2{font-size:18px;margin:0 0 14px}.section{margin-top:16px}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num{text-align:right;white-space:nowrap;font-weight:700}
+
+input[type=text], input[type=number], select{padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:12px;width:100%;background:#fff}
+input[type=number]{text-align:right}
+input:focus, select:focus{outline:none;border-color:var(--accent)}
+
+.btn{padding:8px 14px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-secondary{background:var(--white);color:var(--ink);border:1px solid var(--line)}
+.btn-danger{background:var(--soft);color:var(--danger);padding:4px 8px;font-size:11px;border:1px solid var(--line)}
+.btn-danger:hover{background:var(--danger);color:#fff}
+
+.bar{height:9px;background:#e8edf0;border-radius:99px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.note{font-size:12px;color:var(--muted);line-height:1.45}.total{font-size:20px;font-weight:850}.ok{color:#24724c}.over{color:var(--danger)}
+.footer{margin-top:20px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:15px}
+
+@media(max-width:900px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.metrics{grid-template-columns:1fr}}
+</style>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body>
+<div class="wrap">
+<section class="hero">
+ <div>
+  <div class="kicker">Swahilipot Hub Foundation · IFTIN Global</div>
+  <h1>Interactive Budget Lab</h1>
+ </div>
+ <div class="hero-controls">
+  <div class="config-box">
+   <label for="currencySelect">Currency</label>
+   <select id="currencySelect" onchange="handleCurrencyChange()">
+    <option value="EUR">EUR (€)</option>
+    <option value="USD">USD ($)</option>
+   </select>
+  </div>
+  <div class="config-box">
+   <label for="fxInput">Rate (KSh/Fx)</label>
+   <input id="fxInput" type="number" value="147.70" step="0.1" oninput="syncConfig()">
+  </div>
+  <div class="config-box">
+   <label for="ceilingInput">Ceiling (KSh)</label>
+   <input id="ceilingInput" type="number" value="5000000" step="100000" oninput="syncConfig()">
+  </div>
+ </div>
+</section>
+
+<div class="toolbar">
+ <div class="btn-group">
+  <button class="btn btn-primary" onclick="addLine()">+ Add Line Item</button>
+  <span class="status-pill">🟢 Live Sync Active</span>
+ </div>
+ <div class="btn-group">
+  <button class="btn btn-secondary" onclick="exportJSON()">📥 Export JSON</button>
+  <button class="btn btn-secondary" onclick="el('importFile').click()">📤 Import JSON</button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+  <button class="btn btn-danger" onclick="resetDefault()">Reset Base</button>
+ </div>
+</div>
+
+<div class="metrics">
+ <div class="card metric"><div class="label">Implementation budget</div><div class="value" id="totalKsh">—</div><small>including contingency</small></div>
+ <div class="card metric"><div class="label" id="fxMetricLabel">EUR equivalent</div><div class="value" id="totalFx">—</div><small id="fxSubtext">at rate</small></div>
+ <div class="card metric"><div class="label">Contingency</div><div class="value" id="contKsh">—</div><small>balancing amount to ceiling</small></div>
+ <div class="card metric"><div class="label">Cost / young person</div><div class="value" id="perHead">—</div><small>300 participant basis</small></div>
+</div>
+
+<div class="grid">
+ <div>
+  <div class="card">
+   <h2>Budget Lines & Operational Items</h2>
+   <div style="overflow-x:auto">
+    <table>
+     <thead>
+      <tr>
+       <th style="min-width:140px">Line Item</th>
+       <th style="width:70px">Priority</th>
+       <th style="min-width:120px">Notes / Basis</th>
+       <th style="width:80px" class="num">Units/Qty</th>
+       <th style="width:90px" class="num">Rate (KSh)</th>
+       <th class="num">Total (KSh)</th>
+       <th style="width:50px"></th>
+      </tr>
+     </thead>
+     <tbody id="linesBody"></tbody>
+    </table>
+   </div>
+  </div>
+ </div>
+
+ <div>
+  <div class="card">
+   <h2>Priority Mix Breakdown</h2>
+   <div id="priorities"></div>
+   <p class="note" style="margin-top:12px">P1 = critical delivery; P2 = high; P3 = medium; P4 = lower/flexible; TBD = un-scoped; P5 = contingency.</p>
+  </div>
+
+  <div class="card section">
+   <h2>Budget Check</h2>
+   <div class="total" id="check">—</div>
+   <p class="note">Compares total modeled program costs against your budget ceiling.</p>
+  </div>
+
+  <div class="card section">
+   <h2>Source Notes</h2>
+   <p class="note">Base values derived from <b>SPH IFTIN Program Budget.xlsx</b>.</p>
+  </div>
+ </div>
+</div>
+
+<div class="footer"><span>Prepared for Swahilipot Hub Foundation · Finance Department</span><span>September 2026</span></div>
+</div>
+
+<script>
+// Firebase Config loaded from project credentials
+const firebaseConfig = {
+  apiKey: "AIzaSyByWtJkrEYRXH4bzS7hmPsV3biXTQDpBkU",
+  authDomain: "iftin-ca5b7.firebaseapp.com",
+  databaseURL: "https://iftin-ca5b7-default-rtdb.firebaseio.com",
+  projectId: "iftin-ca5b7",
+  storageBucket: "iftin-ca5b7.firebasestorage.app",
+  messagingSenderId: "1029768321759",
+  appId: "1:1029768321759:web:6dd5323930b871a1a2276a",
+  measurementId: "G-B90K8HBY0V"
+};
+
+// Initialize Firebase Realtime Database
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const budgetRef = db.ref('budget_state');
+
+const el=id=>document.getElementById(id);
+const money=n=>new Intl.NumberFormat('en-KE',{maximumFractionDigits:0}).format(Math.round(n));
+
+const defaultData = [
+ { name: 'Youth Refreshments', priority: 'P1', notes: '25 youth × 96 sessions', qty: 2400, rate: 300 },
+ { name: 'Venue Hire', priority: 'P1', notes: 'Training venues', qty: 96, rate: 10000 },
+ { name: 'Facilitation Fees', priority: 'P1', notes: '2 mentors per group/session', qty: 192, rate: 3000 },
+ { name: 'Printing of Manuals', priority: 'P2', notes: 'Printing support', qty: 96, rate: 1000 },
+ { name: 'ToT Package', priority: 'P1', notes: '45 people × 2 days', qty: 90, rate: 13500 },
+ { name: 'Call Agent Payments', priority: 'P2', notes: '300 successful calls', qty: 1, rate: 30000 },
+ { name: 'Call Agent Airtime', priority: 'P2', notes: 'Tracer study airtime', qty: 1, rate: 20000 },
+ { name: 'Meals for Call Agents', priority: 'P3', notes: 'Calling period meals', qty: 1, rate: 62500 },
+ { name: 'Admin Airtime', priority: 'TBD', notes: 'Program admin support', qty: 1, rate: 36000 },
+ { name: 'Admin Transport', priority: 'TBD', notes: 'Tracer study transport', qty: 1, rate: 450000 },
+ { name: 'Photography & Media', priority: 'P3', notes: 'Equipment placeholder', qty: 1, rate: 300000 },
+ { name: 'Social Media Promotion', priority: 'P4', notes: 'Digital promotion', qty: 1, rate: 134500 },
+ { name: 'Press Engagement', priority: 'P4', notes: 'Local media outreach', qty: 1, rate: 100000 },
+ { name: 'Logistics', priority: 'P3', notes: 'Program coordination', qty: 1, rate: 300000 }
+];
+
+let budgetData = [];
+let isRemoteUpdate = false;
+
+// Listen for live updates from Firebase
+budgetRef.on('value', snapshot => {
+ const data = snapshot.val();
+ if (!data) {
+  pushToFirebase({
+   items: defaultData,
+   ceiling: 5000000,
+   currency: 'EUR',
+   fxRate: 147.70
+  });
+  return;
+ }
+
+ isRemoteUpdate = true;
+ budgetData = data.items || [];
+ el('ceilingInput').value = data.ceiling || 5000000;
+ el('currencySelect').value = data.currency || 'EUR';
+ el('fxInput').value = data.fxRate || 147.70;
+
+ renderTable();
+ isRemoteUpdate = false;
+});
+
+function pushToFirebase(customState) {
+ if (isRemoteUpdate) return;
+ const payload = customState || {
+  items: budgetData,
+  ceiling: +el('ceilingInput').value || 0,
+  currency: el('currencySelect').value,
+  fxRate: +el('fxInput').value || 1
+ };
+ budgetRef.set(payload);
+}
+
+function handleCurrencyChange() {
+ const curr = el('currencySelect').value;
+ if (curr === 'EUR') {
+  el('fxInput').value = 147.70;
+ } else if (curr === 'USD') {
+  el('fxInput').value = 129.00;
+ }
+ syncConfig();
+}
+
+function syncConfig() {
+ pushToFirebase();
+ calc();
+}
+
+function formatFx(kshVal, fxRate, curr) {
+ const val = kshVal / (fxRate || 1);
+ const symbol = curr === 'USD' ? '$' : '€';
+ const locale = curr === 'USD' ? 'en-US' : 'en-DE';
+ return symbol + new Intl.NumberFormat(locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(val));
+}
+
+function renderTable() {
+ const tbody = el('linesBody');
+ tbody.innerHTML = budgetData.map((item, i) => `
+  <tr>
+   <td><input type="text" value="${item.name}" oninput="updateItem(${i}, 'name', this.value)"></td>
+   <td>
+    <select onchange="updateItem(${i}, 'priority', this.value)">
+     ${['P1','P2','P3','P4','TBD'].map(p => `<option value="${p}" ${item.priority===p?'selected':''}>${p}</option>`).join('')}
+    </select>
+   </td>
+   <td><input type="text" value="${item.notes}" oninput="updateItem(${i}, 'notes', this.value)"></td>
+   <td><input type="number" min="0" value="${item.qty}" oninput="updateItem(${i}, 'qty', +this.value)"></td>
+   <td><input type="number" min="0" value="${item.rate}" oninput="updateItem(${i}, 'rate', +this.value)"></td>
+   <td class="num">KSh ${money(item.qty * item.rate)}</td>
+   <td style="text-align:center"><button class="btn btn-danger" onclick="deleteLine(${i})">✕</button></td>
+  </tr>
+ `).join('');
+ calc();
+}
+
+function updateItem(index, key, val) {
+ budgetData[index][key] = val;
+ pushToFirebase();
+ if (key === 'qty' || key === 'rate') renderTable();
+ else calc();
+}
+
+function addLine() {
+ budgetData.push({ name: 'New Budget Line', priority: 'P3', notes: 'Notes', qty: 1, rate: 0 });
+ pushToFirebase();
+ renderTable();
+}
+
+function deleteLine(index) {
+ budgetData.splice(index, 1);
+ pushToFirebase();
+ renderTable();
+}
+
+function calc() {
+ const ceiling = +el('ceilingInput').value || 0;
+ const fxRate = +el('fxInput').value || 1;
+ const curr = el('currencySelect').value;
+
+ const subtotal = budgetData.reduce((sum, item) => sum + (item.qty * item.rate), 0);
+ const cont = Math.max(0, ceiling - subtotal);
+ const total = subtotal + cont;
+
+ el('totalKsh').textContent = 'KSh ' + money(total);
+ el('fxMetricLabel').textContent = curr + ' Equivalent';
+ el('totalFx').textContent = formatFx(total, fxRate, curr);
+ el('fxSubtext').textContent = `at KSh ${fxRate.toFixed(2)} / ${curr}`;
+ el('contKsh').textContent = 'KSh ' + money(cont);
+ el('perHead').textContent = formatFx(total / 300, fxRate, curr);
+
+ el('check').innerHTML = total <= ceiling 
+  ? `<span class="ok">Within ceiling · KSh ${money(ceiling - total)} remaining</span>`
+  : `<span class="over">Over ceiling · KSh ${money(total - ceiling)} excess</span>`;
+
+ const groups = { P1: 0, P2: 0, P3: 0, P4: 0, TBD: 0, P5: cont };
+ budgetData.forEach(item => {
+  const lineTotal = item.qty * item.rate;
+  if (groups[item.priority] !== undefined) groups[item.priority] += lineTotal;
+ });
+
+ el('priorities').innerHTML = Object.entries(groups).map(([k, v]) => `
+  <div style="margin:12px 0">
+   <div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px;margin-bottom:4px">
+    <span>${k}</span>
+    <span>KSh ${money(v)} · ${(total > 0 ? (v/total*100) : 0).toFixed(1)}%</span>
+   </div>
+   <div class="bar"><i style="width:${Math.min(100, total > 0 ? (v/total*100) : 0)}%"></i></div>
+  </div>
+ `).join('');
+}
+
+function exportJSON() {
+ const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(budgetData, null, 2));
+ const downloadAnchor = document.createElement('a');
+ downloadAnchor.setAttribute("href", dataStr);
+ downloadAnchor.setAttribute("download", "IFTIN_Budget_Model.json");
+ document.body.appendChild(downloadAnchor);
+ downloadAnchor.click();
+ downloadAnchor.remove();
+}
+
+function importJSON(event) {
+ const reader = new FileReader();
+ reader.onload = function(e) {
+  try {
+   const imported = JSON.parse(e.target.result);
+   if (Array.isArray(imported)) {
+    budgetData = imported;
+    pushToFirebase();
+    renderTable();
+   }
+  } catch(err) {
+   alert('Invalid JSON file format.');
+  }
+ };
+ reader.readAsText(event.target.files[0]);
+}
+
+function resetDefault() {
+ if (confirm('Reset live database back to baseline values?')) {
+  budgetData = JSON.parse(JSON.stringify(defaultData));
+  pushToFirebase({
+   items: defaultData,
+   ceiling: 5000000,
+   currency: 'EUR',
+   fxRate: 147.70
+  });
+ }
+}
 </script>
+</body>
+</html>
