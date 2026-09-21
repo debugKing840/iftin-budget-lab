@@ -9,7 +9,10 @@
 *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink);background:#eef2f4}
 .wrap{max-width:1280px;margin:auto;padding:28px 22px 50px}
 .hero{background:var(--ink);color:#fff;border-radius:22px;padding:28px 32px;display:flex;justify-content:space-between;gap:20px;align-items:center;flex-wrap:wrap}
-.kicker{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.7}.hero h1{font-size:32px;line-height:1.05;margin:6px 0 0}
+.hero-text{flex:1;min-width:280px}
+.kicker-input{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.7);background:transparent;border:1px dashed rgba(255,255,255,0.2);padding:2px 6px;border-radius:4px;width:100%;margin-bottom:4px}
+.title-input{font-size:28px;font-weight:800;line-height:1.1;color:#fff;background:transparent;border:1px dashed rgba(255,255,255,0.2);padding:4px 8px;border-radius:6px;width:100%}
+.kicker-input:focus, .title-input:focus{outline:none;background:rgba(255,255,255,0.1);border-color:#fff}
 .hero-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .config-box{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:8px}
 .config-box label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#cdd7df;font-weight:700}
@@ -51,9 +54,9 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
 <body>
 <div class="wrap">
 <section class="hero">
- <div>
-  <div class="kicker">Swahilipot Hub Foundation · IFTIN Global</div>
-  <h1>Interactive Budget Lab</h1>
+ <div class="hero-text">
+  <input type="text" id="kickerInput" class="kicker-input" value="Swahilipot Hub Foundation · IFTIN Global" placeholder="Organization / Subtitle">
+  <input type="text" id="titleInput" class="title-input" value="Interactive Budget Lab" placeholder="Project Title">
  </div>
  <div class="hero-controls">
   <div class="config-box">
@@ -144,6 +147,11 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
 const el=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('en-KE',{maximumFractionDigits:0}).format(Math.round(n));
 
+const defaultHeader = {
+ kicker: 'Swahilipot Hub Foundation · IFTIN Global',
+ title: 'Interactive Budget Lab'
+};
+
 const defaultData = [
  { name: 'Youth Refreshments', priority: 'P1', notes: '25 youth × 96 sessions', qty: 2400, rate: 300 },
  { name: 'Venue Hire', priority: 'P1', notes: 'Training venues', qty: 96, rate: 10000 },
@@ -164,10 +172,17 @@ const defaultData = [
 let budgetData = [];
 
 function init() {
- const saved = localStorage.getItem('sph_iftin_budget_data');
+ const saved = localStorage.getItem('sph_iftin_budget_session');
  if (saved) {
   try {
-   budgetData = JSON.parse(saved);
+   const parsed = JSON.parse(saved);
+   if (parsed.items) {
+    budgetData = parsed.items;
+    el('kickerInput').value = parsed.kicker || defaultHeader.kicker;
+    el('titleInput').value = parsed.title || defaultHeader.title;
+   } else {
+    budgetData = parsed;
+   }
   } catch(e) {
    budgetData = [...defaultData];
   }
@@ -270,16 +285,24 @@ function calc() {
  `).join('');
 }
 
+function getPayload() {
+ return {
+  kicker: el('kickerInput').value,
+  title: el('titleInput').value,
+  items: budgetData
+ };
+}
+
 function saveToLocal() {
- localStorage.setItem('sph_iftin_budget_data', JSON.stringify(budgetData));
+ localStorage.setItem('sph_iftin_budget_session', JSON.stringify(getPayload()));
  alert('Budget session saved to your browser!');
 }
 
 function exportJSON() {
- const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(budgetData, null, 2));
+ const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getPayload(), null, 2));
  const downloadAnchor = document.createElement('a');
  downloadAnchor.setAttribute("href", dataStr);
- downloadAnchor.setAttribute("download", "IFTIN_Budget_Model.json");
+ downloadAnchor.setAttribute("download", "Budget_Model.json");
  document.body.appendChild(downloadAnchor);
  downloadAnchor.click();
  downloadAnchor.remove();
@@ -290,11 +313,15 @@ function importJSON(event) {
  reader.onload = function(e) {
   try {
    const imported = JSON.parse(e.target.result);
-   if (Array.isArray(imported)) {
+   if (imported.items && Array.isArray(imported.items)) {
+    budgetData = imported.items;
+    el('kickerInput').value = imported.kicker || defaultHeader.kicker;
+    el('titleInput').value = imported.title || defaultHeader.title;
+   } else if (Array.isArray(imported)) {
     budgetData = imported;
-    renderTable();
-    alert('Budget file loaded successfully!');
    }
+   renderTable();
+   alert('Budget file loaded successfully!');
   } catch(err) {
    alert('Invalid JSON file format.');
   }
@@ -304,8 +331,10 @@ function importJSON(event) {
 
 function resetDefault() {
  if (confirm('Reset to original budget baseline?')) {
-  localStorage.removeItem('sph_iftin_budget_data');
+  localStorage.removeItem('sph_iftin_budget_session');
   budgetData = JSON.parse(JSON.stringify(defaultData));
+  el('kickerInput').value = defaultHeader.kicker;
+  el('titleInput').value = defaultHeader.title;
   renderTable();
  }
 }
