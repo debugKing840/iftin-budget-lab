@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Swahilipot IFTIN Budget Lab (Live Sync)</title>
+<title>Swahilipot IFTIN Budget Lab</title>
 <style>
 :root{--ink:#17212b;--muted:#6b7785;--line:#dfe5ea;--soft:#f5f7f9;--accent:#1d6f8a;--warn:#a85d00;--danger:#a52f2f;--white:#fff}
 *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink);background:#eef2f4}
@@ -18,7 +18,6 @@
 
 .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:16px 0;flex-wrap:wrap}
 .btn-group{display:flex;gap:8px;align-items:center}
-.status-pill{font-size:12px;padding:4px 10px;border-radius:20px;background:#e2f0d9;color:#24724c;font-weight:700;display:inline-flex;align-items:center;gap:6px}
 
 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
 .card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:18px}.metric .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.metric .value{font-size:24px;font-weight:800;margin-top:6px}.metric small{color:var(--muted)}
@@ -37,6 +36,7 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
 .btn{padding:8px 14px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-secondary{background:var(--white);color:var(--ink);border:1px solid var(--line)}
+.btn-secondary:hover{background:var(--soft)}
 .btn-danger{background:var(--soft);color:var(--danger);padding:4px 8px;font-size:11px;border:1px solid var(--line)}
 .btn-danger:hover{background:var(--danger);color:#fff}
 
@@ -47,10 +47,6 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
 @media(max-width:900px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
 @media(max-width:500px){.metrics{grid-template-columns:1fr}}
 </style>
-
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -69,11 +65,11 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
   </div>
   <div class="config-box">
    <label for="fxInput">Rate (KSh/Fx)</label>
-   <input id="fxInput" type="number" value="147.70" step="0.1" oninput="syncConfig()">
+   <input id="fxInput" type="number" value="147.70" step="0.1" oninput="calc()">
   </div>
   <div class="config-box">
    <label for="ceilingInput">Ceiling (KSh)</label>
-   <input id="ceilingInput" type="number" value="5000000" step="100000" oninput="syncConfig()">
+   <input id="ceilingInput" type="number" value="5000000" step="100000" oninput="calc()">
   </div>
  </div>
 </section>
@@ -81,13 +77,13 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
 <div class="toolbar">
  <div class="btn-group">
   <button class="btn btn-primary" onclick="addLine()">+ Add Line Item</button>
-  <span class="status-pill">🟢 Live Sync Active</span>
  </div>
  <div class="btn-group">
+  <button class="btn btn-secondary" onclick="saveToLocal()">💾 Save Session</button>
   <button class="btn btn-secondary" onclick="exportJSON()">📥 Export JSON</button>
   <button class="btn btn-secondary" onclick="el('importFile').click()">📤 Import JSON</button>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
-  <button class="btn btn-danger" onclick="resetDefault()">Reset Base</button>
+  <button class="btn btn-danger" onclick="resetDefault()">Reset</button>
  </div>
 </div>
 
@@ -145,23 +141,6 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
 </div>
 
 <script>
-// Firebase Config loaded from project credentials
-const firebaseConfig = {
-  apiKey: "AIzaSyByWtJkrEYRXH4bzS7hmPsV3biXTQDpBkU",
-  authDomain: "iftin-ca5b7.firebaseapp.com",
-  databaseURL: "https://iftin-ca5b7-default-rtdb.firebaseio.com",
-  projectId: "iftin-ca5b7",
-  storageBucket: "iftin-ca5b7.firebasestorage.app",
-  messagingSenderId: "1029768321759",
-  appId: "1:1029768321759:web:6dd5323930b871a1a2276a",
-  measurementId: "G-B90K8HBY0V"
-};
-
-// Initialize Firebase Realtime Database
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const budgetRef = db.ref('budget_state');
-
 const el=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('en-KE',{maximumFractionDigits:0}).format(Math.round(n));
 
@@ -183,40 +162,19 @@ const defaultData = [
 ];
 
 let budgetData = [];
-let isRemoteUpdate = false;
 
-// Listen for live updates from Firebase
-budgetRef.on('value', snapshot => {
- const data = snapshot.val();
- if (!data) {
-  pushToFirebase({
-   items: defaultData,
-   ceiling: 5000000,
-   currency: 'EUR',
-   fxRate: 147.70
-  });
-  return;
+function init() {
+ const saved = localStorage.getItem('sph_iftin_budget_data');
+ if (saved) {
+  try {
+   budgetData = JSON.parse(saved);
+  } catch(e) {
+   budgetData = [...defaultData];
+  }
+ } else {
+  budgetData = [...defaultData];
  }
-
- isRemoteUpdate = true;
- budgetData = data.items || [];
- el('ceilingInput').value = data.ceiling || 5000000;
- el('currencySelect').value = data.currency || 'EUR';
- el('fxInput').value = data.fxRate || 147.70;
-
  renderTable();
- isRemoteUpdate = false;
-});
-
-function pushToFirebase(customState) {
- if (isRemoteUpdate) return;
- const payload = customState || {
-  items: budgetData,
-  ceiling: +el('ceilingInput').value || 0,
-  currency: el('currencySelect').value,
-  fxRate: +el('fxInput').value || 1
- };
- budgetRef.set(payload);
 }
 
 function handleCurrencyChange() {
@@ -226,11 +184,6 @@ function handleCurrencyChange() {
  } else if (curr === 'USD') {
   el('fxInput').value = 129.00;
  }
- syncConfig();
-}
-
-function syncConfig() {
- pushToFirebase();
  calc();
 }
 
@@ -263,20 +216,20 @@ function renderTable() {
 
 function updateItem(index, key, val) {
  budgetData[index][key] = val;
- pushToFirebase();
- if (key === 'qty' || key === 'rate') renderTable();
- else calc();
+ if (key === 'qty' || key === 'rate') {
+  renderTable();
+ } else {
+  calc();
+ }
 }
 
 function addLine() {
  budgetData.push({ name: 'New Budget Line', priority: 'P3', notes: 'Notes', qty: 1, rate: 0 });
- pushToFirebase();
  renderTable();
 }
 
 function deleteLine(index) {
  budgetData.splice(index, 1);
- pushToFirebase();
  renderTable();
 }
 
@@ -317,6 +270,11 @@ function calc() {
  `).join('');
 }
 
+function saveToLocal() {
+ localStorage.setItem('sph_iftin_budget_data', JSON.stringify(budgetData));
+ alert('Budget session saved to your browser!');
+}
+
 function exportJSON() {
  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(budgetData, null, 2));
  const downloadAnchor = document.createElement('a');
@@ -334,8 +292,8 @@ function importJSON(event) {
    const imported = JSON.parse(e.target.result);
    if (Array.isArray(imported)) {
     budgetData = imported;
-    pushToFirebase();
     renderTable();
+    alert('Budget file loaded successfully!');
    }
   } catch(err) {
    alert('Invalid JSON file format.');
@@ -345,16 +303,14 @@ function importJSON(event) {
 }
 
 function resetDefault() {
- if (confirm('Reset live database back to baseline values?')) {
+ if (confirm('Reset to original budget baseline?')) {
+  localStorage.removeItem('sph_iftin_budget_data');
   budgetData = JSON.parse(JSON.stringify(defaultData));
-  pushToFirebase({
-   items: defaultData,
-   ceiling: 5000000,
-   currency: 'EUR',
-   fxRate: 147.70
-  });
+  renderTable();
  }
 }
+
+init();
 </script>
 </body>
 </html>
