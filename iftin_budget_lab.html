@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Swahilipot IFTIN Budget Lab</title>
+<style>
+:root{--ink:#17212b;--muted:#6b7785;--line:#dfe5ea;--soft:#f5f7f9;--accent:#1d6f8a;--accent2:#e6f3f6;--warn:#a85d00;--white:#fff}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink);background:#eef2f4}
+.wrap{max-width:1180px;margin:auto;padding:28px 22px 50px}
+.hero{background:var(--ink);color:#fff;border-radius:22px;padding:30px 32px;display:flex;justify-content:space-between;gap:30px;align-items:flex-end}
+.kicker{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.7}.hero h1{font-size:34px;line-height:1.05;margin:8px 0}.hero p{margin:0;color:#cdd7df;max-width:680px}
+.hero .badge{background:#fff;color:var(--ink);border-radius:999px;padding:9px 13px;font-weight:700;font-size:13px;white-space:nowrap}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
+.card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:18px}.metric .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.metric .value{font-size:26px;font-weight:800;margin-top:6px}.metric small{color:var(--muted)}
+.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:16px}
+h2{font-size:18px;margin:0 0 14px}.section{margin-top:16px}
+.controls{display:grid;gap:12px}.control{border:1px solid var(--line);border-radius:13px;padding:13px 14px;background:#fff}.controltop{display:flex;justify-content:space-between;gap:12px}.control label{font-weight:700}.control .hint{font-size:12px;color:var(--muted);margin-top:3px}.control input[type=range]{width:100%;margin:12px 0 2px;accent-color:var(--accent)}.val{font-weight:800;color:var(--accent)}
+select{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;font-weight:650}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}td.num{text-align:right;white-space:nowrap}.p1{font-weight:800}.pill{display:inline-block;border-radius:999px;padding:4px 8px;background:var(--soft);font-size:11px;font-weight:800}
+.bar{height:9px;background:#e8edf0;border-radius:99px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.note{font-size:12px;color:var(--muted);line-height:1.45}.total{font-size:21px;font-weight:850}.ok{color:#24724c}.over{color:#a52f2f}
+.footer{margin-top:16px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:15px}
+@media(max-width:850px){.metrics{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.hero{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){.metrics{grid-template-columns:1fr}.hero h1{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="hero">
+ <div><div class="kicker">Swahilipot Hub Foundation · IFTIN Global</div>
+ <h1>Budget Lab</h1>
+ <p>Interactive version of the SPH IFTIN Program Budget. Change the assumptions below and watch the implementation budget, EUR value, contingency and priority mix recalculate.</p></div>
+ <div class="badge">Budget ceiling · KSh 5,000,000</div>
+</section>
+
+<div class="metrics">
+ <div class="card metric"><div class="label">Implementation budget</div><div class="value" id="totalKsh">—</div><small>including contingency</small></div>
+ <div class="card metric"><div class="label">EUR equivalent</div><div class="value" id="totalEur">—</div><small>at KSh 147.70 / EUR</small></div>
+ <div class="card metric"><div class="label">Contingency</div><div class="value" id="contKsh">—</div><small>balancing amount to ceiling</small></div>
+ <div class="card metric"><div class="label">Cost / young person</div><div class="value" id="perHead">—</div><small>96 sessions / 25-person group basis</small></div>
+</div>
+
+<div class="grid">
+<div>
+ <div class="card">
+  <h2>Assumptions</h2>
+  <div class="controls">
+   <div class="control"><div class="controltop"><div><label>Participants per group</label><div class="hint">Used for refreshments</div></div><span class="val" id="vParticipants">25</span></div><input id="participants" type="range" min="10" max="40" step="1" value="25"></div>
+   <div class="control"><div class="controltop"><div><label>Number of sessions</label><div class="hint">Current workbook basis: 8 groups × 12 rounds</div></div><span class="val" id="vSessions">96</span></div><input id="sessions" type="range" min="16" max="120" step="8" value="96"></div>
+   <div class="control"><div class="controltop"><div><label>Refreshments / participant / session</label></div><span class="val">KSh <span id="vRefresh">300</span></span></div><input id="refresh" type="range" min="150" max="500" step="50" value="300"></div>
+   <div class="control"><div class="controltop"><div><label>Venue / session</label></div><span class="val">KSh <span id="vVenue">10,000</span></span></div><input id="venue" type="range" min="0" max="15000" step="500" value="10000"></div>
+   <div class="control"><div class="controltop"><div><label>Facilitation / mentor / session</label><div class="hint">Workbook note says KSh 2,000–3,000; default uses high end</div></div><span class="val">KSh <span id="vFac">3,000</span></span></div><input id="fac" type="range" min="2000" max="3000" step="500" value="3000"></div>
+   <div class="control"><div class="controltop"><div><label>Printing / session</label></div><span class="val">KSh <span id="vPrint">1,000</span></span></div><input id="print" type="range" min="0" max="2000" step="250" value="1000"></div>
+   <div class="control"><div class="controltop"><div><label>Training of Trainers package / person / day</label></div><span class="val">KSh <span id="vTot">13,500</span></span></div><input id="tot" type="range" min="8000" max="18000" step="500" value="13500"></div>
+  </div>
+ </div>
+
+ <div class="card section">
+  <h2>Budget by line</h2>
+  <table><thead><tr><th>Line</th><th>Priority</th><th>Notes</th><th class="num">KSh</th><th class="num">EUR</th></tr></thead><tbody id="lines"></tbody></table>
+ </div>
+</div>
+
+<div>
+ <div class="card">
+  <h2>Priority mix</h2>
+  <div id="priorities"></div>
+  <p class="note">P1 = critical delivery; P2 = high; P3 = medium; P4 = lower/flexible; TBD = not yet scoped; P5 = contingency.</p>
+ </div>
+ <div class="card section">
+  <h2>Budget check</h2>
+  <div class="total" id="check">—</div>
+  <p class="note">The workbook is designed around a KSh 5M ceiling. The contingency is the difference between the ceiling and the modeled program lines.</p>
+ </div>
+ <div class="card section">
+  <h2>Source notes</h2>
+  <p class="note">Data and descriptions are taken from the uploaded <b>SPH IFTIN Program Budget.xlsx</b>. The linked IFTIN page uses the same “Budget lab” concept: assumptions are changed and the budget recalculates live.</p>
+  <p class="note">Exchange rate: KSh 147.70 = EUR 1, as stated in the workbook.</p>
+ </div>
+</div>
+</div>
+<div class="footer"><span>Prepared for Swahilipot Hub Foundation · Finance Department</span><span>September 2026</span></div>
+</div>
+<script>
+const ceiling=5000000, fx=147.7;
+const el=id=>document.getElementById(id), money=n=>new Intl.NumberFormat('en-KE',{maximumFractionDigits:0}).format(Math.round(n)), eur=n=>'€'+new Intl.NumberFormat('en-DE',{minimumFractionDigits:0,maximumFractionDigits:0}).format(Math.round(n/fx));
+const inputs=['participants','sessions','refresh','venue','fac','print','tot'];
+const base={callAgents:30000,airtime:20000,meals:62500,adminAirtime:36000,adminTransport:450000,photo:300000,social:134500,press:100000,logistics:300000};
+function calc(){
+ const p=+el('participants').value,s=+el('sessions').value,r=+el('refresh').value,v=+el('venue').value,f=+el('fac').value,pr=+el('print').value,t=+el('tot').value;
+ el('vParticipants').textContent=p;el('vSessions').textContent=s;el('vRefresh').textContent=money(r);el('vVenue').textContent=money(v);el('vFac').textContent=money(f);el('vPrint').textContent=money(pr);el('vTot').textContent=money(t);
+ const lines=[
+ ['Refreshments','P1','Youth refreshments',p*s*r,'P1'],
+ ['Venue hire','P1','Training venues',s*v,'P1'],
+ ['Facilitation fees','P1','2 facilitators per group/session',2*s*f,'P1'],
+ ['Printing of manuals','P2','Printing support',s*pr,'P2'],
+ ['ToT package','P1','45 people × 2 days',45*2*t,'P1'],
+ ['Call agent payments','P2','300 successful tracer calls',base.callAgents,'P2'],
+ ['Call agent airtime','P2','Tracer-study airtime',base.airtime,'P2'],
+ ['Meals for call agents','P3','Calling period meals',base.meals,'P3'],
+ ['Admin airtime','TBD','Program admin support',base.adminAirtime,'TBD'],
+ ['Admin transport','TBD','Tracer-study transport',base.adminTransport,'TBD'],
+ ['Photography & videography','P3','Equipment placeholder',base.photo,'P3'],
+ ['Social media & digital promotion','P4','Content & promotion',base.social,'P4'],
+ ['Press / media engagement','P4','Local media outreach',base.press,'P4'],
+ ['Logistics','P3','Program coordination',base.logistics,'P3']
+ ];
+ const subtotal=lines.reduce((a,x)=>a+x[3],0), cont=Math.max(0,ceiling-subtotal), total=subtotal+cont;
+ el('totalKsh').textContent='KSh '+money(total);el('totalEur').textContent=eur(total);el('contKsh').textContent='KSh '+money(cont);el('perHead').textContent=eur(total/300);
+ el('check').innerHTML=total<=ceiling?'<span class="ok">Within ceiling · KSh '+money(ceiling-total)+' remaining</span>':'<span class="over">Over ceiling · KSh '+money(total-ceiling)+'</span>';
+ const all=[...lines,['Program contingency / unallocated buffer','P5','Balancing figure',cont,'P5']];
+ el('lines').innerHTML=all.map(x=>`<tr><td><b>${x[0]}</b></td><td><span class="pill">${x[4]}</span></td><td class="note">${x[2]}</td><td class="num">${money(x[3])}</td><td class="num">${eur(x[3])}</td></tr>`).join('');
+ const groups={P1:0,P2:0,P3:0,P4:0,TBD:0,P5:cont};lines.forEach(x=>groups[x[4]]+=x[3]);
+ el('priorities').innerHTML=Object.entries(groups).map(([k,v])=>`<div style="margin:12px 0"><div class="controltop"><b>${k}</b><span>${money(v)} · ${(v/total*100).toFixed(1)}%</span></div><div class="bar"><i style="width:${Math.min(100,v/total*100)}%"></i></div></div>`).join('');
+}
+inputs.forEach(i=>el(i).addEventListener('input',calc));calc();
+</script>
+</body></html>
