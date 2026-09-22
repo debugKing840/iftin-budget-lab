@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Swahilipot IFTIN Budget Lab</title>
+<title>Swahilipot Budget Lab</title>
 <style>
 :root{
   --bg-page:#eef2f4;
@@ -41,7 +41,7 @@
 body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink);background:var(--bg-page);transition:background 0.2s, color 0.2s}
 .wrap{max-width:1280px;margin:auto;padding:28px 22px 50px}
 
-.hero{background:var(--hero-bg);color:var(--hero-text);border-radius:22px;padding:28px 32px;display:flex;justify-space-between;gap:20px;align-items:center;flex-wrap:wrap}
+.hero{background:var(--hero-bg);color:var(--hero-text);border-radius:22px;padding:28px 32px;display:flex;justify-content:space-between;gap:20px;align-items:center;flex-wrap:wrap}
 .hero-text{flex:1;min-width:280px}
 
 .kicker-input, .title-input{
@@ -55,18 +55,18 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-seri
 .title-input{font-size:28px;font-weight:800;line-height:1.1;padding:6px 10px}
 .kicker-input:focus, .title-input:focus{outline:none;border-color:#fff !important;background:rgba(255,255,255,0.1) !important}
 
-.hero-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.config-box{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:8px}
-.config-box label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#cdd7df;font-weight:700}
-.config-box input, .config-box select{background:#fff;border:none;border-radius:8px;padding:5px 8px;font-weight:800;font-size:14px;color:#17212b}
-.config-box input[type=number]{width:110px;text-align:right}
+.hero-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.config-box{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:8px 12px;display:flex;align-items:center;gap:6px}
+.config-box label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#cdd7df;font-weight:700}
+.config-box input, .config-box select{background:#fff;border:none;border-radius:8px;padding:5px 8px;font-weight:800;font-size:13px;color:#17212b}
+.config-box input[type=number]{width:95px;text-align:right}
 
 .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:16px 0;flex-wrap:wrap}
-.btn-group{display:flex;gap:8px;align-items:center}
+.btn-group{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
 .card{background:var(--bg-card);border:1px solid var(--line);border-radius:16px;padding:18px;transition:background 0.2s}
-.metric .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.metric .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between;align-items:center}
 .metric .value{font-size:24px;font-weight:800;margin-top:6px}
 .metric small{color:var(--muted)}
 .grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
@@ -97,9 +97,19 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
 .btn-danger{background:var(--soft);color:var(--danger);padding:4px 8px;font-size:11px;border:1px solid var(--line)}
 .btn-danger:hover{background:var(--danger);color:#fff}
 
+.btn-icon{background:none;border:none;cursor:pointer;font-size:12px;padding:2px 4px;border-radius:4px;color:var(--muted)}
+.btn-icon:hover{background:var(--soft);color:var(--ink)}
+
 .bar{height:9px;background:var(--bar-bg);border-radius:99px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px}
 .note{font-size:12px;color:var(--muted);line-height:1.45}.total{font-size:20px;font-weight:850}.ok{color:#10b981}.over{color:var(--danger)}
 .footer{margin-top:20px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:15px}
+
+.inline-num-input{
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  padding: 2px 6px !important;
+  margin-top: 4px;
+}
 
 @media(max-width:900px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
 @media(max-width:500px){.metrics{grid-template-columns:1fr}}
@@ -114,6 +124,21 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
  </div>
  <div class="hero-controls">
   <div class="config-box">
+   <label for="stepSelect">Step Multiplier</label>
+   <select id="stepSelect" onchange="updateSteps()">
+    <option value="1">×1</option>
+    <option value="10">×10</option>
+    <option value="100">×100</option>
+    <option value="1000" selected>×1,000</option>
+    <option value="10000">×10,000</option>
+    <option value="100000">×100,000</option>
+   </select>
+  </div>
+  <div class="config-box">
+   <label for="paxInput">Pax / Youth</label>
+   <input id="paxInput" type="number" value="300" min="1" step="1" style="width:75px" oninput="calc()">
+  </div>
+  <div class="config-box">
    <label for="currencySelect">Currency</label>
    <select id="currencySelect" onchange="handleCurrencyChange()">
     <option value="EUR">EUR (€)</option>
@@ -126,7 +151,7 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
   </div>
   <div class="config-box">
    <label for="ceilingInput">Ceiling (KSh)</label>
-   <input id="ceilingInput" type="number" value="5000000" step="100000" oninput="calc()">
+   <input id="ceilingInput" type="number" value="5000000" step="1000" oninput="calc()">
   </div>
  </div>
 </section>
@@ -134,6 +159,7 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
 <div class="toolbar">
  <div class="btn-group">
   <button class="btn btn-primary" onclick="addLine()">+ Add Line Item</button>
+  <button class="btn btn-secondary" onclick="newBudget()">📄 New Blank Budget</button>
   <button class="btn btn-secondary" id="themeBtn" onclick="toggleTheme()">🌙 Dark Mode</button>
  </div>
  <div class="btn-group">
@@ -141,15 +167,22 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
   <button class="btn btn-secondary" onclick="exportJSON()">📥 Export JSON</button>
   <button class="btn btn-secondary" onclick="el('importFile').click()">📤 Import JSON</button>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
-  <button class="btn btn-danger" onclick="resetDefault()">Reset</button>
+  <button class="btn btn-danger" onclick="resetDefault()">Reset Default</button>
  </div>
 </div>
 
 <div class="metrics">
- <div class="card metric"><div class="label">Implementation budget</div><div class="value" id="totalKsh">—</div><small>including contingency</small></div>
- <div class="card metric"><div class="label" id="fxMetricLabel">EUR equivalent</div><div class="value" id="totalFx">—</div><small id="fxSubtext">at rate</small></div>
- <div class="card metric"><div class="label">Contingency</div><div class="value" id="contKsh">—</div><small>balancing amount to ceiling</small></div>
- <div class="card metric"><div class="label">Cost / young person</div><div class="value" id="perHead">—</div><small>300 participant basis</small></div>
+ <div class="card metric">
+  <div class="label">
+   <span>Implementation budget</span>
+   <button class="btn-icon" title="Toggle Manual Custom Budget Override" onclick="toggleCustomBudget()">✏️ Custom</button>
+  </div>
+  <div class="value" id="totalKshContainer"><span id="totalKsh">—</span></div>
+  <small id="implSubtext">including contingency</small>
+ </div>
+ <div class="card metric"><div class="label"><span>EUR equivalent</span></div><div class="value" id="totalFx">—</div><small id="fxSubtext">at rate</small></div>
+ <div class="card metric"><div class="label"><span>Contingency</span></div><div class="value" id="contKsh">—</div><small>balancing amount to ceiling</small></div>
+ <div class="card metric"><div class="label"><span>Cost / young person</span></div><div class="value" id="perHead">—</div><small id="paxSubtext">300 participant basis</small></div>
 </div>
 
 <div class="grid">
@@ -163,10 +196,10 @@ input:focus, select:focus{outline:none;border-color:var(--accent)}
        <th style="min-width:140px">Line Item</th>
        <th style="width:70px">Priority</th>
        <th style="min-width:120px">Notes / Basis</th>
-       <th style="width:80px" class="num">Units/Qty</th>
-       <th style="width:90px" class="num">Rate (KSh)</th>
+       <th style="width:95px" class="num">Units/Qty</th>
+       <th style="width:110px" class="num">Rate (KSh)</th>
        <th class="num">Total (KSh)</th>
-       <th style="width:50px"></th>
+       <th style="width:40px"></th>
       </tr>
      </thead>
      <tbody id="linesBody"></tbody>
@@ -225,6 +258,8 @@ const defaultData = [
 ];
 
 let budgetData = [];
+let isCustomBudget = false;
+let customBudgetValue = 0;
 
 function init() {
  const savedTheme = localStorage.getItem('sph_budget_theme');
@@ -241,6 +276,14 @@ function init() {
     budgetData = parsed.items;
     el('kickerInput').value = parsed.kicker || defaultHeader.kicker;
     el('titleInput').value = parsed.title || defaultHeader.title;
+    if (parsed.pax) el('paxInput').value = parsed.pax;
+    if (parsed.ceiling) el('ceilingInput').value = parsed.ceiling;
+    if (parsed.fxRate) el('fxInput').value = parsed.fxRate;
+    if (parsed.currency) el('currencySelect').value = parsed.currency;
+    if (parsed.isCustomBudget) {
+      isCustomBudget = true;
+      customBudgetValue = parsed.customBudgetValue || 0;
+    }
    } else {
     budgetData = parsed;
    }
@@ -251,6 +294,24 @@ function init() {
   budgetData = [...defaultData];
  }
  renderTable();
+ updateSteps();
+}
+
+function updateSteps() {
+ const step = el('stepSelect').value;
+ el('ceilingInput').step = step;
+ document.querySelectorAll('input[type=number].num-step').forEach(inp => {
+   inp.step = step;
+ });
+}
+
+function toggleCustomBudget() {
+ isCustomBudget = !isCustomBudget;
+ if (isCustomBudget && !customBudgetValue) {
+   const subtotal = budgetData.reduce((sum, item) => sum + (item.qty * item.rate), 0);
+   customBudgetValue = subtotal;
+ }
+ calc();
 }
 
 function toggleTheme() {
@@ -284,6 +345,7 @@ function formatFx(kshVal, fxRate, curr) {
 }
 
 function renderTable() {
+ const step = el('stepSelect') ? el('stepSelect').value : 1000;
  const tbody = el('linesBody');
  tbody.innerHTML = budgetData.map((item, i) => `
   <tr>
@@ -294,8 +356,8 @@ function renderTable() {
     </select>
    </td>
    <td><input type="text" value="${item.notes}" oninput="updateItem(${i}, 'notes', this.value)"></td>
-   <td><input type="number" min="0" value="${item.qty}" oninput="updateItem(${i}, 'qty', +this.value)"></td>
-   <td><input type="number" min="0" value="${item.rate}" oninput="updateItem(${i}, 'rate', +this.value)"></td>
+   <td><input class="num-step" type="number" min="0" step="${step}" value="${item.qty}" oninput="updateItem(${i}, 'qty', +this.value)"></td>
+   <td><input class="num-step" type="number" min="0" step="${step}" value="${item.rate}" oninput="updateItem(${i}, 'rate', +this.value)"></td>
    <td class="num">KSh ${money(item.qty * item.rate)}</td>
    <td style="text-align:center"><button class="btn btn-danger" onclick="deleteLine(${i})">✕</button></td>
   </tr>
@@ -322,21 +384,37 @@ function deleteLine(index) {
  renderTable();
 }
 
+function setCustomValue(val) {
+ customBudgetValue = +val || 0;
+ calc();
+}
+
 function calc() {
  const ceiling = +el('ceilingInput').value || 0;
  const fxRate = +el('fxInput').value || 1;
  const curr = el('currencySelect').value;
+ const pax = +el('paxInput').value || 1;
+ const step = el('stepSelect') ? el('stepSelect').value : 1000;
 
  const subtotal = budgetData.reduce((sum, item) => sum + (item.qty * item.rate), 0);
  const cont = Math.max(0, ceiling - subtotal);
- const total = subtotal + cont;
+ 
+ const total = isCustomBudget ? customBudgetValue : (subtotal + cont);
 
- el('totalKsh').textContent = 'KSh ' + money(total);
+ if (isCustomBudget) {
+  el('totalKshContainer').innerHTML = `<input type="number" class="inline-num-input" step="${step}" value="${customBudgetValue}" oninput="setCustomValue(this.value)">`;
+  el('implSubtext').textContent = 'manual override value';
+ } else {
+  el('totalKshContainer').innerHTML = `<span id="totalKsh">KSh ${money(total)}</span>`;
+  el('implSubtext').textContent = 'including contingency';
+ }
+
  el('fxMetricLabel').textContent = curr + ' Equivalent';
  el('totalFx').textContent = formatFx(total, fxRate, curr);
  el('fxSubtext').textContent = `at KSh ${fxRate.toFixed(2)} / ${curr}`;
  el('contKsh').textContent = 'KSh ' + money(cont);
- el('perHead').textContent = formatFx(total / 300, fxRate, curr);
+ el('perHead').textContent = formatFx(total / pax, fxRate, curr);
+ el('paxSubtext').textContent = `${pax} participant basis`;
 
  el('check').innerHTML = total <= ceiling 
   ? `<span class="ok">Within ceiling · KSh ${money(ceiling - total)} remaining</span>`
@@ -363,8 +441,28 @@ function getPayload() {
  return {
   kicker: el('kickerInput').value,
   title: el('titleInput').value,
+  pax: +el('paxInput').value,
+  ceiling: +el('ceilingInput').value,
+  fxRate: +el('fxInput').value,
+  currency: el('currencySelect').value,
+  isCustomBudget: isCustomBudget,
+  customBudgetValue: customBudgetValue,
   items: budgetData
  };
+}
+
+function newBudget() {
+ if (confirm('Start a new blank budget project? (Make sure to export/save your current one first)')) {
+  el('kickerInput').value = 'Swahilipot Hub Foundation';
+  el('titleInput').value = 'New Project Budget';
+  el('paxInput').value = 100;
+  el('ceilingInput').value = 1000000;
+  isCustomBudget = false;
+  budgetData = [
+   { name: 'Sample Item 1', priority: 'P1', notes: 'Key priority delivery', qty: 1, rate: 50000 }
+  ];
+  renderTable();
+ }
 }
 
 function saveToLocal() {
@@ -373,10 +471,11 @@ function saveToLocal() {
 }
 
 function exportJSON() {
+ const name = el('titleInput').value.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'budget_model';
  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getPayload(), null, 2));
  const downloadAnchor = document.createElement('a');
  downloadAnchor.setAttribute("href", dataStr);
- downloadAnchor.setAttribute("download", "Budget_Model.json");
+ downloadAnchor.setAttribute("download", `${name}.json`);
  document.body.appendChild(downloadAnchor);
  downloadAnchor.click();
  downloadAnchor.remove();
@@ -391,6 +490,16 @@ function importJSON(event) {
     budgetData = imported.items;
     el('kickerInput').value = imported.kicker || defaultHeader.kicker;
     el('titleInput').value = imported.title || defaultHeader.title;
+    if (imported.pax) el('paxInput').value = imported.pax;
+    if (imported.ceiling) el('ceilingInput').value = imported.ceiling;
+    if (imported.fxRate) el('fxInput').value = imported.fxRate;
+    if (imported.currency) el('currencySelect').value = imported.currency;
+    if (imported.isCustomBudget) {
+      isCustomBudget = true;
+      customBudgetValue = imported.customBudgetValue || 0;
+    } else {
+      isCustomBudget = false;
+    }
    } else if (Array.isArray(imported)) {
     budgetData = imported;
    }
@@ -404,11 +513,14 @@ function importJSON(event) {
 }
 
 function resetDefault() {
- if (confirm('Reset to original budget baseline?')) {
+ if (confirm('Reset to original IFTIN budget baseline?')) {
   localStorage.removeItem('sph_iftin_budget_session');
   budgetData = JSON.parse(JSON.stringify(defaultData));
   el('kickerInput').value = defaultHeader.kicker;
   el('titleInput').value = defaultHeader.title;
+  el('paxInput').value = 300;
+  el('ceilingInput').value = 5000000;
+  isCustomBudget = false;
   renderTable();
  }
 }
